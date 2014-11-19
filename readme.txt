@@ -7,7 +7,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Put a sitewide password on your site.  Users must enter password before viewing content.
+Put a sitewide password on your site.  Users must enter password before viewing pages that are not whitelisted.
 
 == Description ==
 Very simple plug that allows you to put a password-protect the front end of your site.  You can also white list pages so that they are still accessible without entering the site password.  You can also set any page you want to be the \"enter your password\" screen. This is supposed to be a super simple plug, let me know if you want any features added. 
