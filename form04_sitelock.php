@@ -193,7 +193,7 @@ function formula04_site_lock_get_plugin_directory(){
  * Register formula04_site_lock style sheet.
  */
 function register_plugin_styles() {
-	wp_register_style( 'formula04_site_lock_css', plugins_url( 'form04_sitelock/formula04_site_lock.css' ) );
+	wp_register_style( 'formula04_site_lock_css', plugins_url( 'formula04-site-lock/formula04_site_lock.css' ) );
 	wp_enqueue_style( 'formula04_site_lock_css' );
 }
 	
