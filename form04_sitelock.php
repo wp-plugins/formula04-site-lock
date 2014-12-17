@@ -59,8 +59,6 @@ function my_register_mce_button( $buttons ) {
 	array_push( $buttons, 'my_mce_button' );
 	return $buttons;
 }
-
-
 //----------------------------
 // END ADD custom button to TINY MCE Editor
 //----------------------------
@@ -69,7 +67,6 @@ function my_register_mce_button( $buttons ) {
 //----------------------------
 //Add Formula04_site_lock Shortcode
 //----------------------------
-
 function formula04_site_lock_password_form_shortcode( $atts ) {
       $atts = shortcode_atts( array(
  	      'foo' => 'no foo',
@@ -79,11 +76,6 @@ function formula04_site_lock_password_form_shortcode( $atts ) {
       return formula04_site_lock_password_form();
 }
 add_shortcode( 'f04sitelockform', 'formula04_site_lock_password_form_shortcode' );
-
-
-
-
-
 //----------------------------
 //END Formula04_site_lock Add Shortcode
 //----------------------------
@@ -94,7 +86,7 @@ add_shortcode( 'f04sitelockform', 'formula04_site_lock_password_form_shortcode' 
 //Intial Function that loads all site-locks crap.
 add_action( 'init', 'formula04_site_lock' );
 function formula04_site_lock() {
-	
+		
    $options = get_option( 'formula04_settings' );
    //echo" <br /><hr /><pre style='background-color:black; color:white;'>".htmlspecialchars(print_r($options,true))."</pre>";
    
@@ -116,9 +108,14 @@ function formula04_site_lock() {
  	 //Do we have a valid page to redirect to?
 	 $redirect_location = formula04_site_lock_get_redirect_location();
    	 
+	// echo  $redirect_location;
+	 $url_with_variables_removed = strtok($redirect_location, '?');
+    // echo $url;
+	 
+	 
 	 //If there is no set redirect location.
-	 if(  !$redirect_location  || $redirect_location  == get_home_url()  ):
-	 	// echo 'NO Valid Redirect Set';
+	 if(  !$redirect_location  || $url_with_variables_removed  == get_home_url()  ):
+	 	 //echo 'NO Valid Redirect Set';
 	 	 //Redirect to Homepage and Show Login Template
 		 add_filter( 'template_include', 'formula04_site_lock_template_redirect' );
 		 //return get_home_url();		 
@@ -129,7 +126,8 @@ function formula04_site_lock() {
    endif;//if(!$logged_in):
       
    //Password Attempt
-   $pass_try = isset($_POST['formula04-site-lock-pass-try'])  && !empty($_POST['formula04-site-lock-pass-try']) ? $_POST['formula04-site-lock-pass-try'] : false;   
+   $pass_try = isset($_POST['formula04-site-lock-pass-try'])  && !empty($_POST['formula04-site-lock-pass-try']) ? sanitize_text_field( $_POST['formula04-site-lock-pass-try'] ) : false;   
+   
    
    //Do we already have a password cookie set
    if(isset( $_COOKIE['formula04-site-lock'])):
@@ -142,15 +140,23 @@ function formula04_site_lock() {
 	//We don't have this cookie already set, so are submitting a password?
 	if(!$pass_try):
 		//If not we need to set our cookie for the first timmmmeeeeeeeeeee
-		setcookie( 'formula04-site-lock', 'rockoutwithyourcockout', time() + 3600, '/', '' );
+		setcookie( 'formula04-site-lock', 'bethechangeyouwanttosee', time() + 3600, '/', '' );
 	else:
 	
 	 	if( md5($pass_try) ==  md5($password) ):
 			//This User Just Entered The Correct Password
 			setcookie( 'formula04-site-lock', md5($password), time() + 3600, '/', '' );
+			
+			//If we have a redirect page, then lets go there.
+			$redirect_to = $_GET['redirect_to'];
+			if(!empty($redirect_to)):
+				wp_redirect( $redirect_to/*, $status*/ );		
+				exit;
+			endif;		
+			
 			return;
 	   else:	   
-	 	   setcookie( 'formula04-site-lock', 'rockoutwithyourcockout', time() + 3600, '/', '' );
+	 	   setcookie( 'formula04-site-lock', 'bethechangeyouwanttosee', time() + 3600, '/', '' );
 	   endif; //if( md5($pass_try) ==  md5($password) ): 
 	   	
 	endif;
@@ -164,6 +170,15 @@ function formula04_site_lock() {
 	   if( md5($pass_try) ==  md5($password) ):
 			//This User Just Entered The Correct Password
 			setcookie( 'formula04-site-lock', md5($password), time() + 3600, '/', '' );
+			
+			
+			//If we have a redirect page, then lets go there.
+			$redirect_to = $_GET['redirect_to'];
+			if(!empty($redirect_to)):
+				wp_redirect( $redirect_to/*, $status*/ );		
+				exit;
+			endif;
+			
 			return;
 	   else:  
 	   endif;  
@@ -174,7 +189,7 @@ function formula04_site_lock() {
    
    //If we make it to this point we are still locked out
    //Add action to redirect.
-    add_action( 'template_redirect', 'formula04_site_lock_redirect' );
+   add_action( 'template_redirect', 'formula04_site_lock_redirect' );
 
 	endif;// if(  !$options  ||  $site_lock_activated != 'on' ):
 }//formula04_site_lock
@@ -193,7 +208,7 @@ function formula04_site_lock_get_plugin_directory(){
  * Register formula04_site_lock style sheet.
  */
 function register_plugin_styles() {
-	wp_register_style( 'formula04_site_lock_css', plugins_url( 'formula04-site-lock/formula04_site_lock.css' ) );
+	wp_register_style( 'formula04_site_lock_css', plugins_url( 'form04_sitelock/formula04_site_lock.css' ) );
 	wp_enqueue_style( 'formula04_site_lock_css' );
 }
 	
@@ -213,20 +228,9 @@ function formula04_site_lock_template_redirect( $original_template ) {
 	
 	else:
 	
-	
-	
-	
 	endif;
-	
-	
 	return $original_template;
 }
-
-
-
-
-
-
 
 
 function formula04_site_lock_logged_in_check() {
@@ -250,6 +254,7 @@ function formula04_site_lock_logged_in_check() {
 
  
 function formula04_site_lock_redirect( $original_template ) {
+	
 	$logged_in = formula04_site_lock_logged_in_check();
 	global $post;
 	if(  $logged_in  ):
@@ -260,7 +265,7 @@ function formula04_site_lock_redirect( $original_template ) {
 	  $whitelisted = formula04_site_lock_get_whitelisted();
 	  
 	  $redirect_location = formula04_site_lock_get_redirect_location();
-   	 
+   	
 	
 	 //If there is no set redirect location.
 	 //if(!$redirect_location):
@@ -269,10 +274,16 @@ function formula04_site_lock_redirect( $original_template ) {
 	  
 	  //$id = $post->ID  && is_single($post) ? $post->ID : false;
 	  $id = $post->ID;
+//echo formula04_site_lock_get_redirect_location();
+//echo '<br />';	
+//echo $_SERVER['REQUEST_URI'];
+//echo "http://".untrailingslashit($_SERVER['HTTP_HOST'])."$_SERVER[REQUEST_URI]"; 
+if( formula04_site_lock_get_redirect_location() ==  "http://".untrailingslashit($_SERVER['HTTP_HOST'])."$_SERVER[REQUEST_URI]"):
 	 
-
+	
+endif;	 
 	 
-	  
+	
 	  //ITs whitelisted do nothing
 	  if(  !$redirect_location  &&  is_home()):
 	  //Homepage and there is no place to redirect too.
@@ -280,19 +291,25 @@ function formula04_site_lock_redirect( $original_template ) {
 	  
 	   //Are we on a whitelisted page || Or is this the home page AND has no redirect page been set 
 	  elseif($whitelisted && in_array($id, $whitelisted)  ):
-	  
+	  //WE are whitelisted, do nothing
 	  
 	  elseif( preg_replace("(^https?://)", "", trailingslashit($redirect_location) ) ==   preg_replace("(^https?://)", "", trailingslashit( $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"] ) )   ):
-	  	add_filter( 'template_include', 'formula04_site_lock_template_redirect' );	  
+	 // echo preg_replace("(^https?://)", "", trailingslashit($redirect_location));	
+		add_filter( 'template_include', 'formula04_site_lock_template_redirect' );	  
 	  		//We Are on a whitelisted Page/The Home Page And No redirect page has been set, so Do nothing
 			//echo 'Whitelisted';
-	  else:	  
-			//We Need To Redirect to our page.
-			//echo 'Restricted';
-			
+	  
+	  
+	  elseif(formula04_site_lock_get_redirect_location() ==  "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]" ):
+		//Avoid Loop
 	
-			
-			wp_redirect( formula04_site_lock_get_redirect_location()/*, $status*/ );
+	  
+	  else:	
+	  	  	//echo 'We Need To Redirect';
+			//We Need To Redirect to our page.
+			//echo formula04_site_lock_get_redirect_location();
+			//echo  formula04_site_lock_get_redirect_location();
+			wp_redirect( formula04_site_lock_get_redirect_location()/*, $status*/ );		
 			exit;
 			
 	  endif;
@@ -312,32 +329,38 @@ function formula04_site_lock_get_whitelisted(){
 	$options = get_option( 'formula04_settings' );
    //Get An Array of all our Whitelisted ID's otherwise we are false
     $whitelisted = isset($options['formula04_site_white_listed']) ? $options['formula04_site_white_listed'] : false;
-		
 	return $whitelisted;
-
-
 }//formula04_site_lock_get_whitelisted
 
 
 
 
 function formula04_site_lock_get_redirect_location(){
-	
 	//Get Our Options
 	$options = get_option( 'formula04_settings' );
 	$redirect_page = isset($options['formula04_site_lock_redirect_location']) ? $options['formula04_site_lock_redirect_location'] : false;
 		
-	//	echo $redirect_page;
-		
+	//echo $redirect_page;
 	//If the $redirect_page is numeric it is a post ID
 	if(is_numeric($redirect_page)):
+		//echo 'numeric';
 		return(get_permalink($redirect_page));
+		
 	else:
-		return get_home_url();				
+	   	$redirect_to_when_logged_in_location = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+		
+		//Check our redirect url.
+		$current_redirect_query_var = isset($_GET['redirect_to'])  ? $_GET['redirect_to'] :   false;
+		
+		if($redirect_to_when_logged_in_location == add_query_arg( 'redirect_to', urlencode($current_redirect_query_var) , trailingslashit(get_home_url()) ) ):
+			//echo 'they the same man';
+			return("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+		else:	
+			//echo 'We Need to redirect';
+			return(add_query_arg( 'redirect_to', urlencode($redirect_to_when_logged_in_location) , trailingslashit(get_home_url()) ));
+		endif;
 	endif;
-	
 	//return home_url(add_query_arg(array(),$wp->request));
-
 }//formula04_site_lock_get_redirect_location
 
 
@@ -364,11 +387,8 @@ function formula_04_settings_menu() {
 }
 // mt_settings_page() displays the page content for the Test settings submenu
 function formula_04_settings_page() {
-    echo "<h2>" . __( 'Formula 04 Site Lock Settings', 'formula04' ) . "</h2>";
-	?>
-	
+    echo "<h2>" . __( 'Formula 04 Site Lock Settings', 'formula04' ) . "</h2>";?>
     <div id="formula04_dialog_box">
-    	
     </div>
     
     <form action='options.php' method='post' class="formula04-site-lock-admin-options-form">		
@@ -412,8 +432,7 @@ function edd_heartbeat_footer_js() {
     // Only proceed if on site lock admin page
 	if( 'options-general.php' != $pagenow   ||  $_GET['page'] != 'formula04-site-lock'  ):
         return;
-	endif;
-?>
+	endif;?>
     <script>
     (function($){
 		//For Testing
@@ -637,20 +656,14 @@ function formula04_settings_init(  ) {
 		'F04SiteLockSet', 
 		'formula04_SiteLockSet_section' 
 	);	
-	
-	
-	
-	
+
 	add_settings_field( 
 		'formula04_site_lock_redirect_location', 
 		__( 'Formula04 Site Lock Redirection Location', 'formula04' ), 
 		'formula04_site_lock_redirect_location_render', 
 		'F04SiteLockSet', 
 		'formula04_SiteLockSet_section' 
-	);		
-
-	
-	
+	);			
 /*	add_settings_field( 
 		'formula04_quickwindow_template', 
 		__( 'Pop Up Window Content Setting', 'formula04' ), 
@@ -667,15 +680,12 @@ function formula04_site_lock_onoff_render(  ) {
 	$options = get_option( 'formula04_settings' );?>
 	<input type='checkbox' name='formula04_settings[formula04_site_lock_onoff]' <?php echo $options  && isset($options['formula04_site_lock_onoff']) && $options['formula04_site_lock_onoff'] ? 'checked' : '';  /* checked( $options['formula04_use_f04_css'], 1 );*/ ?> value='1'>
 	<span class=""><?php _e('Activate', 'formula04'); ?></span>    
-	<?php
+	<?php //formula04_site_lock_onoff_render
 }
 
 
-
-
 function formula04_site_lock_get_all_page_options(   ){
-	
-	//Get ALL POSTS
+		//Get ALL POSTS
 		$master_array = array();
 		$all_posts = get_posts(); 
 		foreach($all_posts  as  $key => $post):
@@ -689,9 +699,7 @@ function formula04_site_lock_get_all_page_options(   ){
 <?php   endforeach;
 
 		return $master_array;
-	
-	
-}
+}//formula04_site_lock_get_all_page_options
 
 function formula04_site_lock_white_listed_render(  ) { 
 		$options = get_option( 'formula04_settings' );
