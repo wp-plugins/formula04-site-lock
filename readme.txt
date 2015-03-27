@@ -6,7 +6,7 @@ Tested up to: 4.1.1
 Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-Donate link: http://www.formula04.com/sitelock/
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=verbiphone%40gmail%2ecom
 
 Put a sitewide password on your site.  Users must enter password before viewing content.
 
