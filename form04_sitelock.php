@@ -58,11 +58,6 @@ class Form04_SiteLock {
 			'form04_enqueue_scripts'
 		), 30);       
 				
-		add_action('wp_footer',  array(
-			&$this, 'javascript_func' 
-			)
-		);
-		
 	   //add_action( 'admin_menu', 'formula04_add_admin_menu' );
 		add_action( 'admin_init',  array(
 			&$this, 
