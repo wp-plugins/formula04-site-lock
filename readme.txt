@@ -1,6 +1,6 @@
 === Formula04 Site Lock ===
 Contributors: Verb_Form04
-Tags: Lock, Password, Password Protect, Security, Private
+Tags: Restrict Access, Lock, Password, Password Protect, Security, Private Content, Password Form
 Requires at least: 3.5.0
 Tested up to: 4.1.1
 Stable tag: 1.5.0
