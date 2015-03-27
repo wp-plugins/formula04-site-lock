@@ -22,7 +22,7 @@ After activation you will need to go to the Formula04 SiteLock settings page to 
 
 **Settings Page**
 
-**Formula04 Site Lock Password **
+**Formula04 Site Lock Password**
 Here is where you set the password your visitors will need to enter in order to login.
 
 **Activate Formula04 Site Lock**
