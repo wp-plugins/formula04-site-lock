@@ -4,17 +4,16 @@ Plugin Name: Formula04 Site Lock
 Plugin Script: form04_sitelock.php
 Plugin URI: http://formula04.com/form04_sitelock
 Description: Put a sitewide password on your site that will force users to enter said password before viewing content.
-Version: 1.0
+Version: 0.1
 Tested up to: 4.1.1
 Author: VerB
 Author URI: https://profiles.wordpress.org/verb_form04
 Template by: http://www.formula04.com
 
 === RELEASE NOTES ===
-2014-11-12 - v.01 - first version
-
-2014-11-12 - v1.0 - first real version
+2014-11-12 - v1.0 - first version
 */
+
 
 if(!class_exists( 'Form04_SiteLock'  )):
 class Form04_SiteLock {
@@ -30,6 +29,10 @@ class Form04_SiteLock {
 		//Keep all our Formula04 SiteLock Settings in one easy accessible variable.
 		$this->form04_sitelock_options = get_option( 'form04_sitelock_settings' ); 
 		
+		//DEVSTART
+		//Dev function.
+		add_action( 'all', array(&$this, 'superdebug_verb') );
+		//DEVEND
 		
 		//Enqueue Admin scripts.
         add_action('admin_enqueue_scripts', array(
@@ -45,7 +48,18 @@ class Form04_SiteLock {
 		//----------------------------
 		// UNIVERSAL FUNCTIONS
 		//----------------------------
-			
+		
+		//Adming Init used mostly for testing.
+		/*add_action('admin_init', array(
+			&$this,
+			'admin_init_verb'
+		));
+		*/
+		
+		add_filter('gettext', array(
+			&$this,'filter_gettext'), 10, 3);
+		
+		
 		//Add our custom product type
 		add_action('plugins_loaded', array(
 			&$this,
@@ -57,7 +71,13 @@ class Form04_SiteLock {
 			&$this,
 			'form04_enqueue_scripts'
 		), 30);       
-				
+		
+		//Add scripts  directly to header  front-end
+		add_action('wp_head', array(
+			&$this,
+			'frontend_scripts_func'
+		));
+		
 		add_action('wp_footer',  array(
 			&$this, 'javascript_func' 
 			)
@@ -103,11 +123,169 @@ class Form04_SiteLock {
 
 	}//__construct
 
+//DEVSTART
+	//Fire on every single action.
+	public function superdebug_verb(){
+		global $verb_super_filter;
+		$verb_super_filter['actions'] = current_action();
+		$verb_super_filter['filters'] = current_filter();
+		//echo '<a href="#" onclick="parentNode.removeChild(parentNode)">'.current_action().'</a> <br />';
+	}
+	
+	public function popupstuff(){ob_start();
+		 ?><div  style="
+        color:white;
+        position: fixed;
+  background-color: rgba(0, 0, 0, 0.82);
+  padding: 10px;
+  bottom:-400px;
+  height: 450px;
+  width: 80%;
+  opacity:0;
+  display:none;
+ 
+  margin: auto;
+  position: fixed;
+
+  left: 0;
+  top:0;
+  right: 0;
+  z-index: 0;"
+        
+        
+        
+        class="popup_stuff"><a href="#" style="position: absolute;
+  right: 20px;
+ 
+  padding: 5px;
+  border: 1px solid white;
+  font-weight: bold;
+  color: white;" class="close_me_mario">Close X</a>
+  
+  
+  
+  
+ <h1 style="text-align:center;"> Get in Touch</h1>
+  <?php echo do_shortcode('[contact-form-7 id="83" title="Hire Reqeust"]'); ?>
+  
+  
+  
+  
+  </div><div id="popback" style=" display:none; opacity:0; overflow:hidden; background-color: rgba(41, 42, 42, 0.48); top:0px; left:0px; right:0px; bottom:0px; margin:auto; position:fixed; width:30px; height:30px;">
+    
+        <div id="clouds" style="top: 0px;
+  right: 0px;
+  bottom: 0;
+  left: 0;
+  
+  margin: auto;
+  width: 100vw;
+  opacity:.6;
+  overflow: HIDDEN;
+  max-zoom: 100%;
+  max-width: 100%;
+  position: fixed;">
+	<div class="cloud x1"></div>
+
+	<div class="cloud x2"></div>
+	<div class="cloud x3"></div>
+	<div class="cloud x4"></div>
+	<div class="cloud x5"></div>
+</div>
+        
+  
+  
+  </div><?php
+		
+	
+	$popup = ob_get_contents();
+	 ob_end_clean();
+	return  addslashes(preg_replace('/^\s+|\n|\r|\s+$/m', '', $popup));
+	
+	 }
+	
+
+public function javascript_func(){?>	
+	<script type="text/javascript">
+   	jQuery( document ).ready(function() {
+	var $popup_stuff = '<?php echo $this->popupstuff(); ?>'
+	jQuery('body').append($popup_stuff);
+	
+	jQuery(document).on('click', '.quickpop', function(e){
+		e.preventDefault();
+		jQuery('.popup_stuff').css('z-index','90');
+		jQuery('.popup_stuff').css({'z-index':22, 'display':'block' }).animate({bottom:'0px', opacity:1}, 250, 'swing', function(){
+		
+		$page_height = jQuery('html').outerHeight();
+		jQuery('#popback').css({'z-index':20, 'display':'block' }).animate({opacity:1, width:'100vw', height:'100vh'},200, 'swing');
+		
+			
+		});
+	})
+	
+	jQuery(document).on('click', '.close_me_mario', function(e){
+		e.preventDefault();
+		$pop_up_height = jQuery('.popup_stuff').outerHeight( true );
+		jQuery('.popup_stuff').animate({bottom:'-'+$pop_up_height+'px', opacity:0}, 250, 'swing', function(){
+			jQuery('.popup_stuff').css({'z-index':0, 'display':'none' })
+			jQuery('#popback').animate({bottom:'0px', opacity:0, width:'0%', height:'0%'},400, 'swing', function(){
+				jQuery('#popback').css({'z-index':0, 'display':'none' })
+				
+			});
+					
+		
+		
+		} );
+	})
+	
+	
+	
+	
+	
+		
+	})
+   
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+<?php }
+//DEVEND
+
 
 
 //Fire duruing admin admin enqueue
 public function form04_admin_enqueue(){
-
+	
+		$plugin_path = plugin_dir_url( __FILE__ );	
+		
+		//DEVSTART
+		/* wp_enqueue_script( 'jquery' );
+		 wp_enqueue_script('jquery-ui-core');
+		 wp_enqueue_script( 'jquery-ui-slider' );   
+	  	 wp_enqueue_script('jquery-ui-datepicker');
+		 
+		 
+		if ( !wp_script_is( 'jquery-ui-timepicker-addon', 'enqueued' ) ):
+		  wp_register_script(
+			  'jquery-ui-timepicker-addon',
+			  $plugin_path. 'js/jquery-ui-timepicker-addon.js',
+			  array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-core' ),
+			  '2.0.4'
+		  );
+		  wp_enqueue_script('jquery-ui-timepicker-addon');
+        endif;*/
+		//DEVEND
+	
 }//form04_admin_enqueue
 
 
@@ -126,6 +304,176 @@ public function form04_plugins_loaded(){
 public function form04_enqueue_scripts(){
 
 }//end form04_enqueue_scripts
+
+//DEVSTART
+public function frontend_scripts_func(){?>
+<style type="text/css">
+.wpcf7-not-valid-tip{
+	font-size:.8em !important;
+	
+}
+
+
+#clouds{
+	z-index:-1;
+	padding: 100px 0;
+	background: #c9dbe9;
+	background: -webkit-linear-gradient(top, #c9dbe9 0%, #fff 100%);
+	background: -linear-gradient(top, #c9dbe9 0%, #fff 100%);
+	background: -moz-linear-gradient(top, #c9dbe9 0%, #fff 100%);
+}
+
+
+.cloud {
+	width: 200px; height: 60px;
+	background: #fff;
+	
+	border-radius: 200px;
+	-moz-border-radius: 200px;
+	-webkit-border-radius: 200px;
+	
+	position: relative; 
+}
+
+.cloud:before, .cloud:after {
+	content: '';
+	position: absolute; 
+	background: #fff;
+	width: 100px; height: 80px;
+	position: absolute; top: -15px; left: 10px;
+	
+	border-radius: 100px;
+	-moz-border-radius: 100px;
+	-webkit-border-radius: 100px;
+	
+	-webkit-transform: rotate(30deg);
+	transform: rotate(30deg);
+	-moz-transform: rotate(30deg);
+}
+
+.cloud:after {
+	width: 120px; height: 120px;
+	top: -55px; left: auto; right: 15px;
+}
+
+
+.x1 {
+	-webkit-animation: moveclouds 15s linear infinite;
+	-moz-animation: moveclouds 15s linear infinite;
+	-o-animation: moveclouds 15s linear infinite;
+}
+
+
+.x2 {
+	left: 200px;
+	
+	-webkit-transform: scale(0.6);
+	-moz-transform: scale(0.6);
+	transform: scale(0.6);
+	opacity: 0.6;
+	
+
+	-webkit-animation: moveclouds 25s linear infinite;
+	-moz-animation: moveclouds 25s linear infinite;
+	-o-animation: moveclouds 25s linear infinite;
+}
+
+.x3 {
+	left: -250px; top: -200px;
+	
+	-webkit-transform: scale(0.8);
+	-moz-transform: scale(0.8);
+	transform: scale(0.8);
+	opacity: 0.8; 
+	
+	-webkit-animation: moveclouds 20s linear infinite;
+	-moz-animation: moveclouds 20s linear infinite;
+	-o-animation: moveclouds 20s linear infinite;
+}
+
+.x4 {
+	left: 470px; top: -250px;
+	
+	-webkit-transform: scale(0.75);
+	-moz-transform: scale(0.75);
+	transform: scale(0.75);
+	opacity: 0.75; 
+	
+	-webkit-animation: moveclouds 18s linear infinite;
+	-moz-animation: moveclouds 18s linear infinite;
+	-o-animation: moveclouds 18s linear infinite;
+}
+
+.x5 {
+	left: -150px; top: -150px;
+	
+	-webkit-transform: scale(0.8);
+	-moz-transform: scale(0.8);
+	transform: scale(0.8);
+	opacity: 0.8;
+	
+	-webkit-animation: moveclouds 20s linear infinite;
+	-moz-animation: moveclouds 20s linear infinite;
+	-o-animation: moveclouds 20s linear infinite;
+}
+
+@-webkit-keyframes moveclouds {
+	0% {margin-left: 1000px;}
+	100% {margin-left: -1000px;}
+}
+@-moz-keyframes moveclouds {
+	0% {margin-left: 1000px;}
+	100% {margin-left: -1000px;}
+}
+@-o-keyframes moveclouds {
+	0% {margin-left: 1000px;}
+	100% {margin-left: -1000px;}
+}
+.wpcf7-form select,
+.wpcf7-form input{
+	width:300px;
+	max-width:90%;
+	font-size:1em;
+	padding:5px;
+	
+	
+}.wpcf7-form input[type="submit"]{
+	max-width:100%;
+	width:100%;
+	
+}
+.wpcf7-submit{
+	width:100%;
+	display:block;
+	
+}
+.wpcf7-textarea{
+max-width:99%;	
+}
+
+.wpcf7-form p{
+	margin-bottom:10px;
+	
+	
+}
+.div.wpcf7-response-output,
+body .div.wpcf7-validation-errors{
+	border:none !important;
+	margin:0px  !important;
+	padding:0px !important;
+	
+}
+
+.content-column.one_third{
+	text-align:center;
+	
+}
+
+.error.form04_sitelock_error{ background-color:red; color:#ffffff;}
+
+</style>
+<?php }//end 
+//DEVEND
 
 
 //Is user logged in.
@@ -336,6 +684,16 @@ endif;
 <?php }//formula04_site_lock_password_form
 
 
+//DEVSTART
+public function filter_gettext($translated_text, $text, $domain) {
+    $new_message = str_replace('Proudly powered by', 'Just like your MOM, powered by ', $text);
+	$new_message = str_replace('https://wordpress.org/', '/', $new_message);
+    return $new_message;
+}//filter_gettext
+//DEVEND
+
+
+
 public function formula04_site_lock_get_redirect_location(){
 	global $post;
 	global $wp_query;
@@ -392,6 +750,35 @@ public function formula04_site_lock_get_redirect_location(){
 	endif;
 	
 	return $whitelist_location;
+	
+	//DEVSTART
+	/*
+	//Get Our Options
+	$options = get_option( 'form04_sitelock_settings' );
+	$redirect_page = isset($options['formula04_site_lock_redirect_location']) ? $options['formula04_site_lock_redirect_location'] : false;
+		
+	//echo $redirect_page;
+	//If the $redirect_page is numeric it is a post ID
+	if(is_numeric($redirect_page)):
+		//echo 'numeric';
+		return(get_permalink($redirect_page));
+		
+	else:
+	   	$redirect_to_when_logged_in_location = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+		
+		//Check our redirect url.
+		$current_redirect_query_var = isset($_GET['redirect_to'])  ? $_GET['redirect_to'] :   false;
+		
+		if($redirect_to_when_logged_in_location == add_query_arg( 'redirect_to', urlencode($current_redirect_query_var) , trailingslashit(get_home_url()) ) ):
+			//echo 'they the same man';
+			return("http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]");
+		else:	
+			//echo 'We Need to redirect';
+			return(add_query_arg( 'redirect_to', urlencode($redirect_to_when_logged_in_location) , trailingslashit(get_home_url()) ));
+		endif;
+	endif;*/
+	//return home_url(add_query_arg(array(),$wp->request));
+	//DEVEND
 	
 }//formula04_site_lock_get_redirect_location
 
@@ -632,7 +1019,18 @@ public function edd_heartbeat_footer_js() {
     (function($){
 		//For Testing
 		wp.heartbeat.interval( 'fast' );
-			
+	//DEVSTART			
+		//Stop heartbeat.
+		/* $(window)
+		 .off('blur.wp-heartbeat-focus')
+		 .off('focus.wp-heartbeat-focus')
+		 .trigger('unload.wp-heartbeat');
+		*/
+		
+		//wp.heartbeat.interval( 'fast' );
+	//DEVEND	
+		
+		
 	    // Hook into the heartbeat-send
         $(document).on('heartbeat-send', function(e, data) {
 			     var $form_data = data['formula04-site-lock-admin-data'] = $("form.formula04-site-lock-admin-options-form").serialize();
@@ -643,8 +1041,17 @@ public function edd_heartbeat_footer_js() {
 		
 		$("form.formula04-site-lock-admin-options-form :input").change(function() {
 			var $form_data = $("form.formula04-site-lock-admin-options-form").serialize();
+			
 			wp.heartbeat.interval( 'fast' );	
   			
+			//DEVSTART
+			//wp.heartbeat.scheduleNextTick()
+			//wp.heartbeat.start();
+			//wp.heartbeat.interval( 'fast' );
+			//$(document).trigger( 'heartbeat-send', [$form_data] );
+			//$(window).trigger('heartbeat-connection-restored');
+			//DEVEND
+			
 		});
 		 		
  
